@@ -1,0 +1,6 @@
+frontend/node_modules/
+data/
+*.db
+*.log
+btree-server
+btree-admin
