@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>B+Tree Engine Console</title>
+    <style>
+      :root {
+        --bg: #f5f1e8;
+        --surface: #fffdf8;
+        --ink: #1d1a15;
+        --muted: #6f665b;
+        --line: #d7c8b0;
+        --accent: #b45f2f;
+        --accent-2: #2f6db4;
+      }
+
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at top left, rgba(180, 95, 47, 0.14), transparent 30%),
+          radial-gradient(circle at top right, rgba(47, 109, 180, 0.12), transparent 28%),
+          linear-gradient(180deg, #f8f4ec 0%, var(--bg) 100%);
+      }
+
+      header {
+        padding: 32px 24px 20px;
+        border-bottom: 1px solid rgba(29, 26, 21, 0.08);
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(2rem, 4vw, 3.6rem);
+        line-height: 0.95;
+        letter-spacing: -0.04em;
+      }
+
+      p {
+        margin: 12px 0 0;
+        max-width: 72ch;
+        color: var(--muted);
+      }
+
+      main {
+        padding: 24px;
+        display: grid;
+        gap: 18px;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      }
+
+      section {
+        min-height: 280px;
+        background: color-mix(in srgb, var(--surface) 92%, white 8%);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(67, 47, 22, 0.08);
+      }
+
+      section > .panel-title {
+        padding: 14px 16px;
+        font-size: 0.82rem;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--muted);
+        border-bottom: 1px solid rgba(29, 26, 21, 0.08);
+        background: linear-gradient(90deg, rgba(180, 95, 47, 0.07), rgba(47, 109, 180, 0.05));
+      }
+
+      section > .panel-body {
+        height: calc(100% - 50px);
+        padding: 12px;
+      }
+
+      #panel-tree, #panel-isolation, #panel-scenarios {
+        min-height: 440px;
+      }
+
+      @media (max-width: 720px) {
+        header, main { padding-left: 16px; padding-right: 16px; }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>B+Tree Engine Console</h1>
+      <p>Live inspection of tree structure, page layout, MVCC state, isolation behavior, buffer activity, WAL flow, and scenario execution.</p>
+    </header>
+    <main>
+      <section><div class="panel-title">Tree Structure</div><div class="panel-body" id="panel-tree"></div></section>
+      <section><div class="panel-title">Page Inspector</div><div class="panel-body" id="panel-page"></div></section>
+      <section><div class="panel-title">Version Chains</div><div class="panel-body" id="panel-versions"></div></section>
+      <section><div class="panel-title">Isolation Demo</div><div class="panel-body" id="panel-isolation"></div></section>
+      <section><div class="panel-title">Buffer Pool</div><div class="panel-body" id="panel-buffer"></div></section>
+      <section><div class="panel-title">WAL</div><div class="panel-body" id="panel-wal"></div></section>
+      <section><div class="panel-title">Scenarios</div><div class="panel-body" id="panel-scenarios"></div></section>
+    </main>
+    <script type="module" src="/dist/main.js"></script>
+  </body>
+</html>
