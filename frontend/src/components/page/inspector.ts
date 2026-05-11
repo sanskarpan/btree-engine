@@ -2,6 +2,7 @@
 import * as d3 from "d3";
 import type { PageContents, SlotInfo } from "../../api/types";
 import { tree as treeApi } from "../../api/client";
+import { subscribeToPageSelection } from "../../ui/page-selection";
 
 const STATUS_COLOR: Record<string, string> = {
   committed: "#4caf50",
@@ -13,10 +14,16 @@ const STATUS_COLOR: Record<string, string> = {
 export class PageInspector {
   private container: d3.Selection<HTMLElement, unknown, null, undefined>;
   private currentPageID = 1;
+  private input: d3.Selection<HTMLInputElement, unknown, null, undefined> | null = null;
 
   constructor(el: HTMLElement) {
     this.container = d3.select(el);
     this.buildUI();
+    subscribeToPageSelection((pageID) => {
+      this.currentPageID = pageID;
+      this.input?.property("value", String(pageID));
+      void this.loadPage(pageID);
+    });
   }
 
   private buildUI() {
@@ -25,7 +32,7 @@ export class PageInspector {
     // Page ID input
     const controls = this.container.append("div").style("margin-bottom", "8px");
     controls.append("label").text("Page ID: ");
-    const input = controls
+    this.input = controls
       .append("input")
       .attr("type", "number")
       .attr("min", "0")
@@ -37,7 +44,7 @@ export class PageInspector {
       .text("Inspect")
       .style("margin-left", "6px")
       .on("click", () => {
-        this.currentPageID = +(input.node()?.value ?? "1");
+        this.currentPageID = +(this.input?.node()?.value ?? "1");
         this.loadPage(this.currentPageID);
       });
 

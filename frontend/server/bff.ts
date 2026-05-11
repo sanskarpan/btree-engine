@@ -1,8 +1,8 @@
 // BFF (Backend For Frontend) — Elysia proxy + WebSocket fan-out for the B+Tree engine.
 import { Elysia } from "elysia";
-import { dirname, join } from "node:path";
+import { dirname, extname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 
 const BACKEND = process.env.BACKEND_URL ?? "http://localhost:8080";
 const BFF_PORT = Number(process.env.BFF_PORT ?? "3001");
@@ -11,11 +11,44 @@ const SERVER_DIR = dirname(fileURLToPath(import.meta.url));
 const FRONTEND_ROOT = join(SERVER_DIR, "..");
 const INDEX_HTML = join(FRONTEND_ROOT, "index.html");
 const DIST_DIR = join(FRONTEND_ROOT, "dist");
+const DIST_ROOT = resolve(DIST_DIR);
 
 function serveStatic(path: string, contentType: string): Response {
   return new Response(readFileSync(path), {
     headers: { "content-type": contentType },
   });
+}
+
+function contentTypeFor(path: string): string {
+  switch (extname(path)) {
+    case ".css":
+      return "text/css; charset=utf-8";
+    case ".html":
+      return "text/html; charset=utf-8";
+    case ".json":
+      return "application/json; charset=utf-8";
+    case ".svg":
+      return "image/svg+xml";
+    case ".js":
+      return "text/javascript; charset=utf-8";
+    default:
+      return "application/octet-stream";
+  }
+}
+
+export function resolveDistPath(requestPath: string): string | null {
+  const normalized = requestPath.replace(/^\/+/, "");
+  const candidate = resolve(DIST_ROOT, normalized);
+  if (!candidate.startsWith(`${DIST_ROOT}/`) && candidate !== DIST_ROOT) {
+    return null;
+  }
+  if (!existsSync(candidate)) {
+    return null;
+  }
+  if (!statSync(candidate).isFile()) {
+    return null;
+  }
+  return candidate;
 }
 
 function proxyURL(path: string, requestURL: string): string {
@@ -73,12 +106,46 @@ type BackendWebSocket = new (
 
 const BackendWS = WebSocket as unknown as BackendWebSocket;
 
-const app = new Elysia()
+type BrowserSocket = {
+  close: () => void;
+  send: (data: string | ArrayBufferLike | Blob | ArrayBufferView) => void;
+};
+
+type BackendSocket = {
+  close: () => void;
+  onclose: null | ((event: CloseEvent) => void);
+  onerror: null | ((event: Event) => void);
+  onmessage: null | ((event: MessageEvent) => void);
+};
+
+export function wireBackendWebSocket(browser: BrowserSocket, backend: BackendSocket) {
+  backend.onclose = (_event) => {
+    try {
+      browser.close();
+    } catch {
+      // browser client already gone
+    }
+  };
+  backend.onmessage = (message) => {
+    try {
+      browser.send(message.data);
+    } catch {
+      // browser client disconnected
+    }
+  };
+  backend.onerror = (_event) => backend.close();
+}
+
+export const app = new Elysia()
   .get("/", () => serveStatic(INDEX_HTML, "text/html; charset=utf-8"))
   .get("/index.html", () => serveStatic(INDEX_HTML, "text/html; charset=utf-8"))
   .get("/dist/*", ({ params }) => {
     const path = (params as Record<string, string>)["*"] ?? "";
-    return serveStatic(join(DIST_DIR, path), "text/javascript; charset=utf-8");
+    const resolvedPath = resolveDistPath(path);
+    if (!resolvedPath) {
+      return new Response("not found", { status: 404 });
+    }
+    return serveStatic(resolvedPath, contentTypeFor(resolvedPath));
   })
   // Proxy all GET /api/* requests to the backend
   .get("/api/*", ({ params, request }) => {
@@ -158,22 +225,17 @@ const app = new Elysia()
       const bk = new BackendWS(backendWSURL(), {
         headers: auth ? { authorization: auth } : undefined,
       });
-      bk.onmessage = (m) => {
-        try {
-          ws.send(m.data);
-        } catch {
-          // client disconnected
-        }
-      };
-      bk.onerror = () => bk.close();
+      wireBackendWebSocket(ws, bk);
       (ws as { data: { bk?: WebSocket } }).data.bk = bk;
     },
     close(ws) {
       (ws as { data: { bk?: WebSocket } }).data.bk?.close();
     },
-  })
-  .listen(BFF_PORT);
+  });
 
 export type App = typeof app;
 
-console.log(`BFF listening on http://localhost:${BFF_PORT} -> ${BACKEND}`);
+if (import.meta.main) {
+  app.listen(BFF_PORT);
+  console.log(`BFF listening on http://localhost:${BFF_PORT} -> ${BACKEND}`);
+}

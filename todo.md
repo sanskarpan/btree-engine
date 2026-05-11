@@ -39,6 +39,9 @@
 - [ ] `P0-020` Max concurrent open transactions (default 100); HTTP 429 when exceeded
 - [ ] `P0-021` Request timeout middleware (configurable, HTTP 504 on exceed)
 
+### Frontend / BFF Security
+- [x] `P0-022` Prevent path traversal in BFF static asset serving
+
 ---
 
 ## P1 — High (important for production reliability)
@@ -63,16 +66,22 @@
 - [ ] `P1-013` `/health/ready` readiness endpoint (503 during startup/shutdown)
 - [ ] `P1-014` Rich readiness response body (WAL LSN, dirty pages, active txns)
 
+### Frontend Reliability
+- [x] `P1-015` Propagate backend WebSocket disconnects so browser clients recover cleanly
+- [x] `P1-016` Tree node click drives the Page Inspector instead of an alert-only flow
+- [x] `P1-017` README/runtime docs stay aligned with actual Go/tooling requirements and RC semantics
+- [x] `P1-018` Browser-level frontend smoke coverage in CI
+
 ### Cursor Safety
-- [x] `P1-015` Document cursor safety contract
-- [ ] `P1-016` Engine structural version counter + cursor invalidation on `Next()`
-- [ ] `P1-017` Cursor idle timeout
+- [x] `P1-019` Document cursor safety contract
+- [ ] `P1-020` Engine structural version counter + cursor invalidation on `Next()`
+- [ ] `P1-021` Cursor idle timeout
 
 ### Vacuum Improvements
 - [x] `P1-018` Per-page lock release/re-acquire during vacuum (avoid long blocking)
-- [ ] `P1-019` Vacuum progress tracking via metrics
-- [ ] `P1-020` Priority-based vacuum (worst pages first)
-- [ ] `P1-021` `POST /api/v1/vacuum/run` manual trigger
+- [ ] `P1-022` Vacuum progress tracking via metrics
+- [ ] `P1-023` Priority-based vacuum (worst pages first)
+- [ ] `P1-024` `POST /api/v1/vacuum/run` manual trigger
 
 ---
 

@@ -41,7 +41,7 @@ A from-scratch B+Tree storage engine in Go with MVCC, WAL/ARIES crash recovery, 
 
 ### Prerequisites
 
-- Go 1.22+
+- Go 1.26.1+
 - Bun 1.x (for frontend)
 - golangci-lint (optional, for linting)
 
@@ -58,7 +58,7 @@ go run ./cmd/server --config config.yaml
 cd frontend
 bun install
 BFF_PORT=3001 BACKEND_URL=http://localhost:8080 BACKEND_API_KEY=dev-key-change-me bun run dev
-# Builds the UI bundle, starts the BFF on :3001, and serves the console at http://localhost:3001
+# Performs a one-shot bundle build, starts the BFF on :3001, and serves the console at http://localhost:3001
 ```
 
 ### Run tests
@@ -92,7 +92,7 @@ The D3.js frontend has 7 interactive panels:
 ### MVCC Isolation Levels
 
 - **Snapshot Isolation** — one snapshot taken at `BEGIN`; all reads see the same consistent snapshot. Write-skew is possible (demonstrable via the write-skew scenario).
-- **Read Committed** — snapshot refreshed before each `Get()` call; non-repeatable reads are allowed.
+- **Read Committed** — snapshot refreshed per statement for point reads and scans; non-repeatable reads are allowed.
 
 ### ARIES Recovery
 
