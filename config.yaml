@@ -1,0 +1,30 @@
+engine:
+  data_file: "./data/btree.db"
+  buffer_pool_size: 256        # number of frames (256 × 4KB = 1MB)
+
+wal:
+  log_file: "./data/wal"       # base path; segments get _NNNNNN.log suffix
+  buffer_size: 65536           # 64KB in-memory log buffer
+  sync_on_commit: true         # fsync on every COMMIT
+  max_segment_size: 268435456  # 256 MB per segment before rotation
+  archive_command: ""          # shell command run after rotation (%s = segment path); empty = delete
+  group_commit_delay_ms: 0     # batch fsyncs within this window in ms (0 = disabled)
+
+recovery:
+  checkpoint_interval: "30s"   # fuzzy checkpoint frequency; 0 = manual only
+
+mvcc:
+  default_isolation: "snapshot" # "read_committed" | "snapshot"
+  vacuum_interval: "60s"
+  vacuum_dead_threshold: 0.20  # compact page if >20% dead tuples
+
+gateway:
+  port: 8080
+  ws_buffer: 512
+  api_keys:
+    - "dev-key-change-me"      # rotate before any non-localhost deployment
+  idle_txn_timeout: "5m"       # auto-abort transactions idle longer than this
+  request_drain_timeout: "30s" # graceful shutdown drain window
+
+log_level: "info"              # debug | info | warn | error
+log_format: "text"             # text | json (use json in production)
