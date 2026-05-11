@@ -3,6 +3,7 @@ import * as d3 from "d3";
 import type { TreeNode } from "../../api/types";
 import { tree as treeApi } from "../../api/client";
 import { getWSClient } from "../../ws/client";
+import { selectPage } from "../../ui/page-selection";
 
 const WIDTH = 960;
 const HEIGHT = 600;
@@ -98,7 +99,7 @@ export class BTreeVisualizer {
       .attr("class", "node")
       .attr("transform", (d) => `translate(${d.x},${d.y})`)
       .style("cursor", "pointer")
-      .on("click", (_e, d) => this.showPageDetail(d.data));
+      .on("click", (_e, d) => selectPage(d.data.page_id));
 
     node
       .append("rect")
@@ -126,11 +127,5 @@ export class BTreeVisualizer {
       .attr("font-size", "10px")
       .attr("fill", "#eee")
       .text((d) => `slots=${d.data.num_slots} fill=${d.data.fill_pct.toFixed(0)}%`);
-  }
-
-  private showPageDetail(node: TreeNode) {
-    alert(
-      `Page ${node.page_id}\nType: ${node.type}\nSlots: ${node.num_slots}\nFill: ${node.fill_pct.toFixed(1)}%\nKeys: ${(node.keys ?? []).slice(0, 3).join(", ")}${(node.keys ?? []).length > 3 ? "..." : ""}`
-    );
   }
 }

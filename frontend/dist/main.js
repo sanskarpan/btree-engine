@@ -4402,6 +4402,26 @@ function defaultWSURL() {
   return url.toString();
 }
 
+// src/ui/page-selection.ts
+var PAGE_SELECTED_EVENT = "btree:page-selected";
+function selectPage(pageID) {
+  if (typeof window === "undefined") {
+    return;
+  }
+  window.dispatchEvent(new CustomEvent(PAGE_SELECTED_EVENT, { detail: pageID }));
+}
+function subscribeToPageSelection(handler) {
+  if (typeof window === "undefined") {
+    return () => {};
+  }
+  const listener = (event) => {
+    const customEvent = event;
+    handler(customEvent.detail);
+  };
+  window.addEventListener(PAGE_SELECTED_EVENT, listener);
+  return () => window.removeEventListener(PAGE_SELECTED_EVENT, listener);
+}
+
 // src/components/tree/tree.ts
 var WIDTH = 960;
 var HEIGHT = 600;
@@ -4445,17 +4465,10 @@ class BTreeVisualizer {
         this.g.append("line").attr("stroke", "#6ab7ff").attr("stroke-width", 1).attr("stroke-dasharray", "4 2").attr("x1", a.x + NODE_W / 2).attr("y1", a.y).attr("x2", b.x - NODE_W / 2).attr("y2", b.y);
       }
     }
-    const node = this.g.selectAll(".node").data(treeData.descendants()).join("g").attr("class", "node").attr("transform", (d) => `translate(${d.x},${d.y})`).style("cursor", "pointer").on("click", (_e, d) => this.showPageDetail(d.data));
+    const node = this.g.selectAll(".node").data(treeData.descendants()).join("g").attr("class", "node").attr("transform", (d) => `translate(${d.x},${d.y})`).style("cursor", "pointer").on("click", (_e, d) => selectPage(d.data.page_id));
     node.append("rect").attr("x", -NODE_W / 2).attr("y", -NODE_H / 2).attr("width", NODE_W).attr("height", NODE_H).attr("rx", 4).attr("fill", (d) => d.data.type === "internal" ? "#9e9e9e" : "#42a5f5").attr("stroke", "#333").attr("stroke-width", 1.5);
     node.append("text").attr("text-anchor", "middle").attr("dy", "-4").attr("font-size", "11px").attr("fill", "white").text((d) => `P${d.data.page_id} (${d.data.type})`);
     node.append("text").attr("text-anchor", "middle").attr("dy", "10").attr("font-size", "10px").attr("fill", "#eee").text((d) => `slots=${d.data.num_slots} fill=${d.data.fill_pct.toFixed(0)}%`);
-  }
-  showPageDetail(node) {
-    alert(`Page ${node.page_id}
-Type: ${node.type}
-Slots: ${node.num_slots}
-Fill: ${node.fill_pct.toFixed(1)}%
-Keys: ${(node.keys ?? []).slice(0, 3).join(", ")}${(node.keys ?? []).length > 3 ? "..." : ""}`);
   }
 }
 
@@ -4470,17 +4483,23 @@ var STATUS_COLOR = {
 class PageInspector {
   container;
   currentPageID = 1;
+  input = null;
   constructor(el) {
     this.container = select_default2(el);
     this.buildUI();
+    subscribeToPageSelection((pageID) => {
+      this.currentPageID = pageID;
+      this.input?.property("value", String(pageID));
+      this.loadPage(pageID);
+    });
   }
   buildUI() {
     this.container.html("");
     const controls = this.container.append("div").style("margin-bottom", "8px");
     controls.append("label").text("Page ID: ");
-    const input = controls.append("input").attr("type", "number").attr("min", "0").attr("value", String(this.currentPageID)).style("width", "60px");
+    this.input = controls.append("input").attr("type", "number").attr("min", "0").attr("value", String(this.currentPageID)).style("width", "60px");
     controls.append("button").text("Inspect").style("margin-left", "6px").on("click", () => {
-      this.currentPageID = +(input.node()?.value ?? "1");
+      this.currentPageID = +(this.input?.node()?.value ?? "1");
       this.loadPage(this.currentPageID);
     });
     this.container.append("div").attr("id", "page-content");
