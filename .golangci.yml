@@ -1,0 +1,62 @@
+version: "2"
+
+linters:
+  enable:
+    - errcheck       # unchecked errors
+    - govet          # go vet checks
+    - staticcheck    # SA* checks
+    - ineffassign    # unused assignments
+    - unused         # unused code
+    - gosimple       # simplifications
+    - gofmt          # formatting
+    - goimports      # import ordering
+    - misspell       # spelling
+    - revive         # idiomatic Go style
+    - gocritic       # additional checks
+    - noctx          # http calls without context
+    - bodyclose      # http response body close
+
+linters-settings:
+  errcheck:
+    check-type-assertions: true
+    check-blank: false     # allow intentional _
+
+  govet:
+    enable:
+      - shadow
+
+  revive:
+    rules:
+      - name: exported
+        arguments: ["checkPrivateReceivers"]
+      - name: unused-parameter
+      - name: unreachable-code
+
+  gofmt:
+    simplify: true
+
+  goimports:
+    local-prefixes: btree-engine
+
+  gocritic:
+    enabled-tags:
+      - diagnostic
+      - style
+    disabled-checks:
+      - commentedOutCode
+      - whyNoLint
+
+issues:
+  exclude-rules:
+    # Ignore errcheck for test helper calls that never fail in practice.
+    - path: _test\.go
+      linters: [errcheck]
+    # Ignore unused linter for exported symbols (they are used by callers).
+    - linters: [unused]
+      source: "^func (New|Open)"
+    # Allow nolint in merge/split where InsertRecord errors are handled above.
+    - text: "nolint"
+      linters: [revive]
+
+  max-issues-per-linter: 50
+  max-same-issues: 10
