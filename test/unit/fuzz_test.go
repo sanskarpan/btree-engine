@@ -48,7 +48,8 @@ func FuzzInsertGet(f *testing.F) {
 		tree := btree.New(rootID, bp, nil, dm, tm, nil)
 
 		txn := tm.Begin(mvcc.ReadCommitted)
-		if err := tree.Insert(txn, key, value); err != nil {
+		insertErr := tree.Insert(txn, key, value)
+		if insertErr != nil {
 			// Page-full errors during fuzz are acceptable.
 			tm.Abort(txn)
 			return

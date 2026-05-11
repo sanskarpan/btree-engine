@@ -124,7 +124,7 @@ func TestMVCC_ReadCommitted_NonRepeatableRead(t *testing.T) {
 	// Another txn updates x to v2 and commits
 	upd := eng.Begin(mvcc.SnapshotIsolation)
 	eng.Update(upd, []byte("x"), []byte("v2")) //nolint
-	eng.Commit(upd)                             //nolint
+	eng.Commit(upd)                            //nolint
 
 	// RC transaction reads x again — must see v2 (snapshot refreshed per statement)
 	v2, err := eng.Get(rcTxn, []byte("x"))

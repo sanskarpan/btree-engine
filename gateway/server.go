@@ -179,14 +179,6 @@ func (s *Server) pruneIdleTxns() {
 	}
 }
 
-// touchTxn updates the last-used timestamp for a transaction.
-// Must be called with s.mu held for writing.
-func (s *Server) touchTxn(id uint64) {
-	if _, ok := s.txns[id]; ok {
-		s.txnLastUsed[id] = time.Now()
-	}
-}
-
 func (s *Server) registerRoutes(mux *http.ServeMux) {
 	// Health and metrics endpoints are exempt from auth.
 	mux.HandleFunc("/health", s.handleHealth)

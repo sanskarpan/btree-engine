@@ -118,7 +118,7 @@ func TestARIES_FullRecovery(t *testing.T) {
 				k := []byte{byte(idx >> 8), byte(idx)}
 				_ = k
 				require.NoError(t, eng.Put(txn,
-					[]byte{byte((batch*200+i)>>8), byte(batch*200+i), 'k'},
+					[]byte{byte((batch*200 + i) >> 8), byte(batch*200 + i), 'k'},
 					[]byte{byte(batch), byte(i), 'v'},
 				))
 			}
@@ -137,7 +137,7 @@ func TestARIES_FullRecovery(t *testing.T) {
 		for batch := 0; batch < 5; batch++ {
 			for i := 0; i < 200; i++ {
 				val, err := eng.Get(reader,
-					[]byte{byte((batch*200+i)>>8), byte(batch*200+i), 'k'})
+					[]byte{byte((batch*200 + i) >> 8), byte(batch*200 + i), 'k'})
 				if err == nil && len(val) == 3 && val[0] == byte(batch) {
 					found++
 				}

@@ -1,6 +1,7 @@
 package unit
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -9,7 +10,7 @@ import (
 )
 
 func okHandler() http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
 }
@@ -18,7 +19,7 @@ func TestAuthMiddleware_MissingKey(t *testing.T) {
 	keys := gateway.NewAPIKeySet([]string{"secret"})
 	h := gateway.AuthMiddleware(keys, nil, okHandler())
 
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/engine/stats", nil)
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/api/v1/engine/stats", nil)
 	rr := httptest.NewRecorder()
 	h.ServeHTTP(rr, req)
 
@@ -31,7 +32,7 @@ func TestAuthMiddleware_WrongScheme(t *testing.T) {
 	keys := gateway.NewAPIKeySet([]string{"secret"})
 	h := gateway.AuthMiddleware(keys, nil, okHandler())
 
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/engine/stats", nil)
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/api/v1/engine/stats", nil)
 	req.Header.Set("Authorization", "Basic c2VjcmV0")
 	rr := httptest.NewRecorder()
 	h.ServeHTTP(rr, req)
@@ -45,7 +46,7 @@ func TestAuthMiddleware_InvalidKey(t *testing.T) {
 	keys := gateway.NewAPIKeySet([]string{"secret"})
 	h := gateway.AuthMiddleware(keys, nil, okHandler())
 
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/engine/stats", nil)
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/api/v1/engine/stats", nil)
 	req.Header.Set("Authorization", "Bearer wrongkey")
 	rr := httptest.NewRecorder()
 	h.ServeHTTP(rr, req)
@@ -59,7 +60,7 @@ func TestAuthMiddleware_ValidKey(t *testing.T) {
 	keys := gateway.NewAPIKeySet([]string{"secret"})
 	h := gateway.AuthMiddleware(keys, nil, okHandler())
 
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/engine/stats", nil)
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/api/v1/engine/stats", nil)
 	req.Header.Set("Authorization", "Bearer secret")
 	rr := httptest.NewRecorder()
 	h.ServeHTTP(rr, req)
@@ -74,7 +75,7 @@ func TestAuthMiddleware_ExemptPath(t *testing.T) {
 	exempt := []string{"/health/live"}
 	h := gateway.AuthMiddleware(keys, exempt, okHandler())
 
-	req := httptest.NewRequest(http.MethodGet, "/health/live", nil)
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/health/live", nil)
 	// No Authorization header — should pass through.
 	rr := httptest.NewRecorder()
 	h.ServeHTTP(rr, req)
@@ -89,7 +90,7 @@ func TestAuthMiddleware_NonExemptPathRequiresAuth(t *testing.T) {
 	exempt := []string{"/health/live"}
 	h := gateway.AuthMiddleware(keys, exempt, okHandler())
 
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/engine/stats", nil)
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/api/v1/engine/stats", nil)
 	rr := httptest.NewRecorder()
 	h.ServeHTTP(rr, req)
 

@@ -25,7 +25,7 @@ type WALManager struct {
 	basePath     string
 	catalog      *segmentCatalog
 	currentFile  *os.File
-	segmentStart uint64  // absolute LSN where the current segment file starts
+	segmentStart uint64 // absolute LSN where the current segment file starts
 	buffer       []byte
 	bufferSize   int
 	currentLSN   uint64 // absolute byte offset of next record to write
@@ -38,8 +38,8 @@ type WALManager struct {
 	// Group commit fields (P3-001/P3-002).
 	// gcMu protects gcLeader and gcEpoch.
 	// gcCond is broadcast after each group flush.
-	gcMu    sync.Mutex
-	gcCond  *sync.Cond
+	gcMu     sync.Mutex
+	gcCond   *sync.Cond
 	gcLeader bool   // true when a goroutine is sleeping before the batch flush
 	gcEpoch  uint64 // incremented after each group flush
 }
@@ -374,7 +374,7 @@ func (w *WALManager) LogDeleteRecord(txnID, pageID, prevLSN uint64, slotIdx int,
 
 // LogSplitRecord writes a LogSplit record.
 // Payload: [rightPageID:4][newTupleLen:4][newTuple]
-func (w *WALManager) LogSplitRecord(txnID, leftPageID, rightPageID, prevLSN uint64, separatorKey []byte, newTuple []byte) uint64 {
+func (w *WALManager) LogSplitRecord(txnID, leftPageID, rightPageID, prevLSN uint64, _ []byte, newTuple []byte) uint64 {
 	payload := make([]byte, 4+4+len(newTuple))
 	binary.LittleEndian.PutUint32(payload[0:], uint32(rightPageID))
 	binary.LittleEndian.PutUint32(payload[4:], uint32(len(newTuple)))

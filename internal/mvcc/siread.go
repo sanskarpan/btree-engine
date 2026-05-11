@@ -88,11 +88,10 @@ func (m *SIREADLockManager) AcquireRead(txnID TxnID, key []byte) {
 //   - writerID is now the pivot (inConflict && outConflict), OR
 //   - a concurrent reader has become the pivot (inConflict && outConflict).
 func (m *SIREADLockManager) CheckAndRecordWrite(writerID TxnID, key []byte) error {
-	k := string(key)
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	readers := m.keyReaders[k]
+	readers := m.keyReaders[string(key)]
 	if len(readers) == 0 {
 		return nil
 	}

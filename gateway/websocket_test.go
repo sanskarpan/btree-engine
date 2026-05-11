@@ -1,6 +1,7 @@
 package gateway
 
 import (
+	"context"
 	"net/http/httptest"
 	"testing"
 
@@ -10,21 +11,21 @@ import (
 )
 
 func TestAllowWebSocketOrigin(t *testing.T) {
-	req := httptest.NewRequest("GET", "http://127.0.0.1:8080/ws", nil)
+	req := httptest.NewRequestWithContext(context.Background(), "GET", "http://127.0.0.1:8080/ws", nil)
 	req.Host = "127.0.0.1:8080"
 	req.Header.Set("Origin", "http://127.0.0.1:3001")
 	assert.True(t, allowWebSocketOrigin(req))
 }
 
 func TestAllowWebSocketOrigin_SameHost(t *testing.T) {
-	req := httptest.NewRequest("GET", "https://example.com/ws", nil)
+	req := httptest.NewRequestWithContext(context.Background(), "GET", "https://example.com/ws", nil)
 	req.Host = "example.com"
 	req.Header.Set("Origin", "https://example.com")
 	assert.True(t, allowWebSocketOrigin(req))
 }
 
 func TestAllowWebSocketOrigin_RejectsForeignOrigin(t *testing.T) {
-	req := httptest.NewRequest("GET", "https://example.com/ws", nil)
+	req := httptest.NewRequestWithContext(context.Background(), "GET", "https://example.com/ws", nil)
 	req.Host = "example.com"
 	req.Header.Set("Origin", "https://evil.example")
 	assert.False(t, allowWebSocketOrigin(req))

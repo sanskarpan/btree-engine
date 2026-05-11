@@ -16,8 +16,8 @@ type TupleFlags uint8
 // TupleFlags bit values.
 const (
 	TupleDeleted TupleFlags = 1 << iota // 0x01
-	TupleUpdated                         // 0x02
-	TupleLocked                          // 0x04
+	TupleUpdated                        // 0x02
+	TupleLocked                         // 0x04
 )
 
 // ErrInvalidTuple is returned when decoding a malformed tuple.

@@ -46,7 +46,7 @@ func OpenEngine(cfg Config) (*StorageEngine, error) {
 		"data_file", cfg.DataFile,
 		"wal_file", cfg.WALFile,
 		"buffer_pool_size", cfg.BufferPoolSize)
-	if err := os.MkdirAll(cfg.DataDir, 0755); err != nil {
+	if err := os.MkdirAll(cfg.DataDir, 0o755); err != nil {
 		return nil, err
 	}
 	bus := events.NewEventBus()
@@ -86,10 +86,10 @@ func OpenEngine(cfg Config) (*StorageEngine, error) {
 
 	// Persist root ID changes to MetaPage. WAL logging is done in createNewRoot directly.
 	tree.SetRootChangeCallback(func(newRootID uint32) {
-		m, err := dm.ReadMeta()
-		if err == nil {
-			m.RootPageID = newRootID
-			dm.WriteMeta(m) //nolint
+		metaPage, readErr := dm.ReadMeta()
+		if readErr == nil {
+			metaPage.RootPageID = newRootID
+			dm.WriteMeta(metaPage) //nolint
 		}
 	})
 
@@ -105,9 +105,10 @@ func OpenEngine(cfg Config) (*StorageEngine, error) {
 
 	// Run ARIES recovery
 	rm := recovery.New(walMgr, bp, dm, tm, bus)
-	if err := rm.Recover(); err != nil {
+	recoverErr := rm.Recover()
+	if recoverErr != nil {
 		cleanup()
-		return nil, err
+		return nil, recoverErr
 	}
 
 	// Re-read MetaPage after recovery — root ID may have been updated by redo.
@@ -119,10 +120,10 @@ func OpenEngine(cfg Config) (*StorageEngine, error) {
 	if metaAfter.RootPageID != meta.RootPageID {
 		tree = btree.New(metaAfter.RootPageID, bp, walMgr, dm, tm, bus)
 		tree.SetRootChangeCallback(func(newRootID uint32) {
-			m, err := dm.ReadMeta()
-			if err == nil {
-				m.RootPageID = newRootID
-				dm.WriteMeta(m) //nolint
+			metaPage, readErr := dm.ReadMeta()
+			if readErr == nil {
+				metaPage.RootPageID = newRootID
+				dm.WriteMeta(metaPage) //nolint
 			}
 		})
 		eng.tree = tree

@@ -3,7 +3,8 @@
 // A BloomFilter is a 1024-bit (128-byte) probabilistic set membership structure.
 // It uses 3 independent hash functions derived from FNV-1a with different seeds.
 // Expected false-positive rates (FPR = (1-e^(-kn/m))^k, k=3, m=1024):
-//   100 entries ≈ 1.6 %,  50 entries ≈ 0.3 %,  500 entries ≈ 45 %.
+//
+//	100 entries ≈ 1.6 %,  50 entries ≈ 0.3 %,  500 entries ≈ 45 %.
 //
 // Filters are in-memory only: they do not need WAL protection or crash recovery
 // because they can be rebuilt from the page data on restart.
@@ -14,9 +15,9 @@ import (
 	"sync"
 )
 
-const bloomBits = 1024              // 1024-bit filter
-const bloomBytes = bloomBits / 8   // 128 bytes
-const bloomHashCount = 3           // number of independent hash functions
+const bloomBits = 1024           // 1024-bit filter
+const bloomBytes = bloomBits / 8 // 128 bytes
+const bloomHashCount = 3         // number of independent hash functions
 
 // BloomFilter is a 1024-bit Bloom filter for a single leaf page.
 type BloomFilter struct {

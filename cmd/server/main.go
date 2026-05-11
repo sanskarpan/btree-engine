@@ -189,6 +189,11 @@ func runHealthcheck() {
 	port := 8080 // default; healthcheck always targets localhost
 	url := fmt.Sprintf("http://localhost:%d/health/live", port)
 	resp, err := http.Get(url) //nolint:gosec,noctx
+	if resp != nil {
+		defer func() {
+			_ = resp.Body.Close()
+		}()
+	}
 	if err != nil || resp.StatusCode != http.StatusOK {
 		os.Exit(1)
 	}

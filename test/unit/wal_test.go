@@ -27,8 +27,8 @@ func TestWAL_AppendAndScan(t *testing.T) {
 	var lsns []uint64
 	for i := 0; i < 100; i++ {
 		lsn := w.AppendRecord(wal.LogRecord{
-			Type:  wal.LogInsert,
-			TxnID: uint64(i + 1),
+			Type:    wal.LogInsert,
+			TxnID:   uint64(i + 1),
 			Payload: []byte("payload"),
 		})
 		lsns = append(lsns, lsn)

@@ -137,7 +137,7 @@ func (s *Server) handleTxnBegin(w http.ResponseWriter, r *http.Request) {
 	if isoName == "" {
 		isoName = s.defaultIsolationName()
 	}
-	iso := mvcc.SnapshotIsolation
+	var iso mvcc.IsolationLevel
 	switch isoName {
 	case "read_committed":
 		iso = mvcc.ReadCommitted
