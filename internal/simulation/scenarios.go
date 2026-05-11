@@ -11,9 +11,9 @@ import (
 
 // ScenarioResult holds the outcome of running a scenario.
 type ScenarioResult struct {
-	Name   string         `json:"name"`
-	Steps  []StepResult   `json:"steps"`
-	Stats  map[string]any `json:"stats"`
+	Name  string         `json:"name"`
+	Steps []StepResult   `json:"steps"`
+	Stats map[string]any `json:"stats"`
 }
 
 // StepResult is the outcome of a single step within a scenario.
@@ -178,13 +178,13 @@ func scenarioReadCommitted(eng *engine.StorageEngine) *ScenarioResult {
 
 	setup := eng.Begin(mvcc.SnapshotIsolation)
 	eng.Put(setup, []byte("rc-balance"), []byte("100")) //nolint
-	eng.Commit(setup)                                    //nolint
+	eng.Commit(setup)                                   //nolint
 	step(res, "setup", "inserted rc-balance=100", true, "")
 
 	// T2 updates to 200 and commits
 	t2 := eng.Begin(mvcc.SnapshotIsolation)
 	eng.Put(t2, []byte("rc-balance"), []byte("200")) //nolint
-	eng.Commit(t2)                                    //nolint
+	eng.Commit(t2)                                   //nolint
 	step(res, "t2-update", "T2 updated rc-balance to 200 and committed", true, "")
 
 	// A new read sees 200
@@ -205,7 +205,7 @@ func scenarioSnapshotIso(eng *engine.StorageEngine) *ScenarioResult {
 
 	setup := eng.Begin(mvcc.SnapshotIsolation)
 	eng.Put(setup, []byte("si-x"), []byte("v1")) //nolint
-	eng.Commit(setup)                              //nolint
+	eng.Commit(setup)                            //nolint
 	step(res, "setup", "inserted si-x=v1", true, "")
 
 	// SI txn takes snapshot
@@ -216,7 +216,7 @@ func scenarioSnapshotIso(eng *engine.StorageEngine) *ScenarioResult {
 	// Another txn commits v2
 	upd := eng.Begin(mvcc.SnapshotIsolation)
 	eng.Put(upd, []byte("si-x"), []byte("v2")) //nolint
-	eng.Commit(upd)                              //nolint
+	eng.Commit(upd)                            //nolint
 	step(res, "concurrent-update", "concurrent txn updated si-x to v2 and committed", true, "")
 
 	// SI txn must still see v1
@@ -238,7 +238,7 @@ func scenarioWriteSkew(eng *engine.StorageEngine) *ScenarioResult {
 	setup := eng.Begin(mvcc.SnapshotIsolation)
 	eng.Put(setup, []byte("ws-alice"), []byte("true")) //nolint
 	eng.Put(setup, []byte("ws-bob"), []byte("true"))   //nolint
-	eng.Commit(setup)                                    //nolint
+	eng.Commit(setup)                                  //nolint
 	step(res, "setup", "both alice and bob are on-call", true, "")
 
 	// Both T1 and T2 read both doctors (both see 2 on-call)
@@ -248,11 +248,11 @@ func scenarioWriteSkew(eng *engine.StorageEngine) *ScenarioResult {
 
 	// T1 clocks out alice; T2 clocks out bob — no write-write conflict
 	eng.Put(t1, []byte("ws-alice"), []byte("false")) //nolint
-	eng.Commit(t1)                                    //nolint
+	eng.Commit(t1)                                   //nolint
 	step(res, "t1-commit", "T1 clocked out alice and committed (no conflict)", true, "")
 
 	eng.Put(t2, []byte("ws-bob"), []byte("false")) //nolint
-	eng.Commit(t2)                                  //nolint
+	eng.Commit(t2)                                 //nolint
 	step(res, "t2-commit", "T2 clocked out bob and committed (no write-write conflict with T1)", true, "")
 
 	// Final state: both clocked out — invariant violated!

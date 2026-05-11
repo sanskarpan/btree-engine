@@ -292,9 +292,9 @@ func (bt *BPlusTree) doMergeWithRight(txn *mvcc.Transaction, leaf *page.Page, le
 	bt.bufPool.WritePageData(leafPageID, leaf)
 	bt.bufPool.WritePageData(parentFrame.PageID, parent)
 	bt.bufPool.UnpinPage(leafPageID, true)
-	bt.bufPool.UnpinPage(rightSibID, false)  // unpin before free
-	bt.disk.FreePage(rightSibID)             //nolint
-	bt.bufPool.InvalidatePage(rightSibID)    // prevent stale dirty frame from overwriting freelist
+	bt.bufPool.UnpinPage(rightSibID, false) // unpin before free
+	bt.disk.FreePage(rightSibID)            //nolint
+	bt.bufPool.InvalidatePage(rightSibID)   // prevent stale dirty frame from overwriting freelist
 
 	// Bloom: discard freed page's filter, rebuild surviving leaf's filter.
 	bt.bloom.Remove(rightSibID)
@@ -363,9 +363,9 @@ func (bt *BPlusTree) doMergeIntoLeft(txn *mvcc.Transaction,
 	bt.bufPool.WritePageData(leftSibID, left)
 	bt.bufPool.WritePageData(parentFrame.PageID, parent)
 	bt.bufPool.UnpinPage(leftSibID, true)
-	bt.bufPool.UnpinPage(leafPageID, false)  // unpin before free
-	bt.disk.FreePage(leafPageID)             //nolint
-	bt.bufPool.InvalidatePage(leafPageID)    // prevent stale dirty frame from overwriting freelist
+	bt.bufPool.UnpinPage(leafPageID, false) // unpin before free
+	bt.disk.FreePage(leafPageID)            //nolint
+	bt.bufPool.InvalidatePage(leafPageID)   // prevent stale dirty frame from overwriting freelist
 
 	// Bloom: discard freed page's filter, rebuild surviving sibling's filter.
 	bt.bloom.Remove(leafPageID)

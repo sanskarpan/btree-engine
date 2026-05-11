@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"container/heap"
 	"encoding/binary"
+	"fmt"
 	"log/slog"
 	"time"
 
@@ -622,7 +623,11 @@ func (r *RecoveryManager) Undo(att ActiveTxnTable) error {
 	}
 
 	for h.Len() > 0 {
-		top := heap.Pop(h).(lsnEntry)
+		item := heap.Pop(h)
+		top, ok := item.(lsnEntry)
+		if !ok {
+			return fmt.Errorf("unexpected undo heap entry type %T", item)
+		}
 		lsn, txnID := top.lsn, top.txnID
 
 		record, err := r.walMgr.FetchRecord(lsn)
@@ -755,10 +760,16 @@ type lsnEntry struct {
 
 type lsnHeap []lsnEntry
 
-func (h lsnHeap) Len() int            { return len(h) }
-func (h lsnHeap) Less(i, j int) bool  { return h[i].lsn > h[j].lsn } // max-heap
-func (h lsnHeap) Swap(i, j int)       { h[i], h[j] = h[j], h[i] }
-func (h *lsnHeap) Push(x interface{}) { *h = append(*h, x.(lsnEntry)) }
+func (h lsnHeap) Len() int           { return len(h) }
+func (h lsnHeap) Less(i, j int) bool { return h[i].lsn > h[j].lsn } // max-heap
+func (h lsnHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
+func (h *lsnHeap) Push(x interface{}) {
+	entry, ok := x.(lsnEntry)
+	if !ok {
+		panic(fmt.Sprintf("unexpected undo heap entry type %T", x))
+	}
+	*h = append(*h, entry)
+}
 func (h *lsnHeap) Pop() interface{} {
 	old := *h
 	n := len(old)

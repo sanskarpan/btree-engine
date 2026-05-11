@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"path/filepath"
 	"sync"
 )
 
@@ -148,7 +147,7 @@ func (c *segmentCatalog) segmentContaining(lsn uint64) (segmentInfo, bool) {
 // truncateUpTo removes segments whose EndLSN <= truncateLSN.
 // If archiveCmd is non-empty, it is executed for each segment before deletion.
 // Returns the number of segments removed. Saves the catalog atomically.
-func (c *segmentCatalog) truncateUpTo(basePath string, truncateLSN uint64, archiveCmd string) int {
+func (c *segmentCatalog) truncateUpTo(_ string, truncateLSN uint64, archiveCmd string) int {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -187,9 +186,4 @@ func (c *segmentCatalog) TotalSize() int64 {
 		}
 	}
 	return total
-}
-
-// segmentDir returns the directory containing the WAL segments.
-func segmentDir(basePath string) string {
-	return filepath.Dir(basePath)
 }

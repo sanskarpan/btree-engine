@@ -1,6 +1,7 @@
 package gateway
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -44,7 +45,7 @@ func TestHandleMVCCVisibility_UsesTransactionSnapshot(t *testing.T) {
 	srv.txnLastUsed[uint64(snapshotTxn.ID)] = time.Now()
 	srv.mu.Unlock()
 
-	req := httptest.NewRequest(http.MethodGet,
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet,
 		fmt.Sprintf("/api/v1/mvcc/visibility?key=balance&txnID=%d", snapshotTxn.ID), nil)
 	rr := httptest.NewRecorder()
 	srv.handleMVCCVisibility(rr, req)
@@ -71,7 +72,7 @@ func TestHandleMVCCVisibility_UnknownTxn(t *testing.T) {
 	srv, _, cleanup := openGatewayTestServer(t)
 	defer cleanup()
 
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/mvcc/visibility?key=k&txnID=999", nil)
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/api/v1/mvcc/visibility?key=k&txnID=999", nil)
 	rr := httptest.NewRecorder()
 	srv.handleMVCCVisibility(rr, req)
 
@@ -83,7 +84,7 @@ func TestHandleTxnBegin_UsesConfiguredDefaultIsolation(t *testing.T) {
 	defer cleanup()
 
 	srv.cfg.DefaultIsolation = "serializable"
-	req := httptest.NewRequest(http.MethodPost, "/api/v1/txn/begin", nil)
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodPost, "/api/v1/txn/begin", nil)
 	rr := httptest.NewRecorder()
 	srv.handleTxnBegin(rr, req)
 

@@ -115,7 +115,7 @@ func (p *Page) BinarySearch(key []byte, keyExtract func([]byte) []byte) int {
 		}
 		cmp := bytes.Compare(keyExtract(slotData), key)
 		if cmp == 0 {
-			result = mid  // found a match; record it
+			result = mid // found a match; record it
 			hi = mid - 1 // keep searching left for an earlier occurrence
 		} else if cmp < 0 {
 			lo = mid + 1
