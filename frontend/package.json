@@ -1,0 +1,19 @@
+{
+  "name": "btree-frontend",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "bun run build && bun run server/bff.ts",
+    "build": "bun build src/main.ts --outdir dist",
+    "typecheck": "bun run tsc --noEmit"
+  },
+  "dependencies": {
+    "elysia": "^1.1.0",
+    "@elysiajs/eden": "^1.1.0",
+    "d3": "^7.9.0"
+  },
+  "devDependencies": {
+    "@types/d3": "^7.4.3",
+    "@types/node": "^25.6.0",
+    "typescript": "^5.4.0"
+  }
+}
